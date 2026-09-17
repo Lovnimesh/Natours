@@ -4,7 +4,12 @@ import Tour from '../models/tourModel.js';
 
 const getAllTours = async (req, res) => {
   try {
-    const toursData = await Tour.find();
+    console.log(req.query);
+
+    // 1st WAY
+    const toursData = await Tour.find({});
+
+    // 2nd WAY
 
     res.status(200).json({
       status: 'successfull',
