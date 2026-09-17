@@ -7,9 +7,14 @@ const getAllTours = async (req, res) => {
     console.log(req.query);
 
     // 1st WAY
-    const toursData = await Tour.find({});
+    const toursData = await Tour.find(req.query);
 
     // 2nd WAY
+    // const toursData = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
 
     res.status(200).json({
       status: 'successfull',
