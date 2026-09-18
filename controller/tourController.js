@@ -4,23 +4,37 @@ import Tour from '../models/tourModel.js';
 
 const getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
+    // BUILD QUERY
+    // 1) Filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'fields', 'limit'];
+    excludedFields.forEach((el) => delete queryObj[el]);
 
-    // 1st WAY
-    const toursData = await Tour.find(req.query);
+    // 2) Advance Filtering
+    // here we add the $operator sign before the comparison keyword
 
-    // 2nd WAY
-    // const toursData = await Tour.find()
+    // {difficulty: 'easy', duration: {gte: 5}}
+
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    // g is used for multipule match and replace, if we dont' use g here it will only replace the first occurence
+
+    const query = Tour.find(JSON.parse(queryStr));
+
+    // const query = await Tour.find()
     //   .where('duration')
     //   .equals(5)
     //   .where('difficulty')
     //   .equals('easy');
 
+    // EXECUTE QUERY
+    const tours = await query;
+
     res.status(200).json({
       status: 'successfull',
-      results: toursData.length,
+      results: tours.length,
       data: {
-        tours: toursData,
+        tours: tours,
       },
     });
   } catch (err) {
