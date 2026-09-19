@@ -5,21 +5,36 @@ import Tour from '../models/tourModel.js';
 const getAllTours = async (req, res) => {
   try {
     // BUILD QUERY
-    // 1) Filtering
+    // 1A) Filtering
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'fields', 'limit'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    // 2) Advance Filtering
-    // here we add the $operator sign before the comparison keyword
+    // 1B) Advance Filtering
 
     // {difficulty: 'easy', duration: {gte: 5}}
 
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-    // g is used for multipule match and replace, if we dont' use g here it will only replace the first occurence
 
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // 2) SORTING
+    if (req.query.sort) {
+      query = query.sort(req.query.sort.replace(',', ' '));
+      // sort('price ratingAverage')
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // 3) FIELD LIMITING
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+      // -prefix is used to exclude the field
+    }
 
     // const query = await Tour.find()
     //   .where('duration')
