@@ -7,6 +7,7 @@ import {
   deleteTour,
   createTour,
   aliasTopTours,
+  getTourStats,
 } from '../controller/tourController.js';
 
 const router = express.Router();
@@ -15,6 +16,8 @@ const router = express.Router();
 
 // route alias for top tours
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
+
+router.route('/tour-stats').get(getTourStats);
 
 // if id is not valid then it will return from here no need to verfiy in all the request handler
 router.route('/').get(getAllTours).post(createTour);

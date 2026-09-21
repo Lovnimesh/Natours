@@ -1,5 +1,5 @@
 import Tour from '../models/tourModel.js';
-
+import APIFeatures from '../utils/apiFeatures.js';
 // 2) ROUTE HANDLERS
 
 const aliasTopTours = (req, _res, next) => {
@@ -9,63 +9,6 @@ const aliasTopTours = (req, _res, next) => {
 
   next();
 };
-
-class APIFeatures {
-  constructor(query, queryString) {
-    this.query = query;
-    this.queryString = queryString;
-  }
-
-  filter() {
-    const queryObj = { ...this.queryString };
-    const excludedFields = ['page', 'sort', 'fields', 'limit'];
-    excludedFields.forEach((el) => delete queryObj[el]);
-
-    // 1B) Advance Filtering
-
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-    this.query = this.query.find(JSON.parse(queryStr));
-
-    return this;
-  }
-
-  // sorting function
-  sort() {
-    if (this.queryString.sort) {
-      this.query = this.query.sort(this.queryString.sort.replaceAll(',', ' '));
-      // sort('price ratingAverage')
-    } else {
-      this.query = this.query.sort('-createdAt');
-    }
-
-    return this;
-  }
-
-  // 3) FIELD LIMITING
-  limitFields() {
-    if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(',').join(' ');
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select('-__v');
-    }
-
-    return this;
-  }
-
-  // 4) PAGINATION
-  paginate() {
-    const page = this.queryString.page * 1 || 1;
-    const limit = this.queryString.limit * 1 || 100;
-    const skip = limit * (page - 1);
-
-    this.query = this.query.skip(skip).limit(limit);
-
-    return this;
-  }
-}
 
 const getAllTours = async (req, res) => {
   try {
@@ -176,6 +119,43 @@ const deleteTour = async (req, res) => {
   }
 };
 
+const getTourStats = async (req, res) => {
+  // aggreation is mongodb feature but mongoose give the access also
+  try {
+    const stats = await Tour.aggregate([
+      // here we define stages
+      // document will be passed through the stages and processed and transformed
+
+      //1st stage is-> match (it is just a query)
+      {
+        $match: { ratingAverage: { $gte: 4.5 } },
+      },
+      // group stage
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$ratingAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'failed',
+      message: err,
+    });
+  }
+};
+
 export {
   getAllTours,
   getTour,
@@ -183,4 +163,5 @@ export {
   updateTour,
   deleteTour,
   aliasTopTours,
+  getTourStats,
 };
