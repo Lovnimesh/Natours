@@ -120,25 +120,29 @@ const deleteTour = async (req, res) => {
 };
 
 const getTourStats = async (req, res) => {
-  // aggreation is mongodb feature but mongoose give the access also
   try {
     const stats = await Tour.aggregate([
-      // here we define stages
-      // document will be passed through the stages and processed and transformed
-
       //1st stage is-> match (it is just a query)
       {
         $match: { ratingAverage: { $gte: 4.5 } },
       },
-      // group stage
+
       {
         $group: {
-          _id: null,
+          // _id: null,
+          _id: '$difficulty',
+          numRatings: { $sum: '$ratingQuantity' },
+          numTours: { $sum: 1 },
           avgRating: { $avg: '$ratingAverage' },
           avgPrice: { $avg: '$price' },
           minPrice: { $min: '$price' },
           maxPrice: { $max: '$price' },
         },
+      },
+      // sort stage
+      {
+        // 1-> ascending
+        $sort: { avgPrcie: 1 },
       },
     ]);
 
@@ -146,6 +150,72 @@ const getTourStats = async (req, res) => {
       status: 'success',
       data: {
         stats,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'failed',
+      message: err,
+    });
+  }
+};
+
+const getMOnthlyPlan = async (req, res) => {
+  try {
+    const year = req.params.year * 1;
+    const plan = await Tour.aggregate([
+      // unwind stage is used to 'deconstruct an array field from the inpuct documents and then output one document for each element of the array'
+      {
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+
+      {
+        $group: {
+          // we have mongodb aggregation pipeline operators that we will use below
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          // we use push operator to push the name of tour
+          tours: { $push: '$name' },
+        },
+      },
+
+      // add field stage
+      // used to define a new field
+      {
+        // {name_of_field: value}
+        $addFields: { month: '$_id' },
+      },
+
+      // project stage is used to hide or show the field, 0->hide and 1->show
+      // field_name : 0 or 1
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+
+      {
+        $sort: { numTourStarts: -1 },
+      },
+
+      // limit stage works same as in query
+      {
+        $limit: 12,
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan,
       },
     });
   } catch (err) {
@@ -164,4 +234,5 @@ export {
   deleteTour,
   aliasTopTours,
   getTourStats,
+  getMOnthlyPlan,
 };

@@ -8,6 +8,7 @@ import {
   createTour,
   aliasTopTours,
   getTourStats,
+  getMOnthlyPlan,
 } from '../controller/tourController.js';
 
 const router = express.Router();
@@ -16,6 +17,8 @@ const router = express.Router();
 
 // route alias for top tours
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
+
+router.route('/monthly-plan/:year').get(getMOnthlyPlan);
 
 router.route('/tour-stats').get(getTourStats);
 
