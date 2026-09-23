@@ -97,6 +97,7 @@ tourSchema.pre(/^find/, function (next) {
 
   this.start = Date.now();
   next();
+  ``;
 });
 
 tourSchema.post(/^find/, function (doc, next) {
