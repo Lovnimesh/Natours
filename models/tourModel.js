@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import slugify from 'slugify';
 
 const tourSchema = mongoose.Schema(
   {
@@ -7,6 +8,7 @@ const tourSchema = mongoose.Schema(
       required: [true, 'A tour must have a name'],
       unique: true,
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'A tour must have a duration'],
@@ -53,24 +55,57 @@ const tourSchema = mongoose.Schema(
       select: false,
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     // SCHEMA OPTIONS
     // we have to explicitly specify that virtual properties to be included in schema
-    toJSON: { virtual: true },
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
 // VIRTUAL PROPERTIES
-// we have to attach get method, because the virtual property will be created each time when we get some data out of the database
+
 tourSchema.virtual('durationWeeks').get(function () {
-  // here we dont define the arrow function
-  // arrow function doesn't get it's this keyword thats why we use normal function
-  // here this keyword is going to point current document
   return this.duration / 7;
 });
 
 // we can't use virtual fields in query
+
+// DOCUMENT MIDDLEWARE: (save)
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
+
+tourSchema.post('save', (doc, next) => {
+  console.log(doc);
+  next();
+});
+
+// QUERY MIDDLEWARE
+
+// tourSchema.pre('find', function (next) {
+tourSchema.pre(/^find/, function (next) {
+  // usecase: add field secret tours and query the tour which is not secret
+  this.find({ secretTour: { $ne: true } });
+
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function (doc, next) {
+  // implementing clock
+  console.log(`this query took ${Date.now - this.start} milliseconds`);
+  console.log(doc);
+
+  next();
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 

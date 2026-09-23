@@ -15,7 +15,8 @@
     "express": "^4.22.2",
     "mongoose": "^5.13.23",
     "morgan": "^1.11.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "slugify": "^1.6.9"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
