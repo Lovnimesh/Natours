@@ -7,6 +7,8 @@ const tourSchema = mongoose.Schema(
       type: String,
       required: [true, 'A tour must have a name'],
       unique: true,
+      maxLength: [40, 'A tour name must have less or equal then 40 characters'],
+      minLength: [10, 'A tour name must have more or equal then 10 characters'],
     },
     slug: String,
     duration: {
@@ -20,10 +22,16 @@ const tourSchema = mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'It should have the difficulty'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either: easy, medium or difficult',
+      },
     },
     ratingAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0'],
     },
     ratingQuantity: {
       type: Number,
@@ -33,10 +41,19 @@ const tourSchema = mongoose.Schema(
       type: Number,
       required: [true, 'A tour must have price value'],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        // this function has the acess of priceDiscount value
+        validator: function (val) {
+          // here this only points to current document on New Document creation not on when we update
+          return val < this.price;
+        },
+        message: 'Dsicount price ({VALUE}) should be below the regular price',
+      },
+    },
     summary: {
       type: String,
-      // trim is special type of option that is only works for string type attribute, it removes all the wide space
       trim: true,
     },
     description: {
@@ -46,7 +63,7 @@ const tourSchema = mongoose.Schema(
     },
     imageCover: {
       type: String,
-      require: [true, 'A tour must have a cover image'],
+      required: [true, 'A tour must have a cover image'],
     },
     images: [String],
     createdAt: {
@@ -97,7 +114,6 @@ tourSchema.pre(/^find/, function (next) {
 
   this.start = Date.now();
   next();
-  ``;
 });
 
 tourSchema.post(/^find/, function (doc, next) {
@@ -105,6 +121,18 @@ tourSchema.post(/^find/, function (doc, next) {
   console.log(`this query took ${Date.now - this.start} milliseconds`);
   console.log(doc);
 
+  next();
+});
+
+// AGGREGATION MIDDLEWARE
+
+// execute the function before and after the aggrgation happens
+// we have still the secret tours in aggregation pipeline we have to exclude the secret tour
+
+tourSchema.pre('aggregate', function (next) {
+  // this points the current aggregation object
+  // we will use this.pipeline() since it has the stages
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();
 });
 
