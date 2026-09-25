@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "debug": "ndb server.js"
   },
   "author": "Lovnimesh",
   "license": "ISC",
@@ -16,7 +17,8 @@
     "mongoose": "^5.13.23",
     "morgan": "^1.11.0",
     "path": "^0.12.7",
-    "slugify": "^1.6.9"
+    "slugify": "^1.6.9",
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
@@ -27,6 +29,8 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
+    "ndb": "^1.1.5",
     "prettier": "^3.9.6"
   }
 }
+
