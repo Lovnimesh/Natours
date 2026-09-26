@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
+import AppError from './utils/appError.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,12 +43,12 @@ app.use((req, res, next) => {
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
-// .all() method handles the request coming from any http method
 app.all('*', (req, res, next) => {
-  res.status(404).json({
-    status: 'fail',
-    message: `Can't find the ${req.originalUrl} on this server.`,
-  });
+  // const err = new Error(`Can't find the ${req.originalUrl} on this server.`);
+  // err.status = 'fail';
+  // err.statusCode = 404;
+
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 // GLOBAL ERROR HANDLING MIDDLEWARE
@@ -55,9 +56,6 @@ app.all('*', (req, res, next) => {
 // Express comes with middleware handlers
 
 app.use((err, req, res, next) => {
-  // by specifying the 4 args above, express recognizes it as a error handling middleware
-
-  // defining the statusCode and stuatus for error object when it is undefined
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
