@@ -1,6 +1,7 @@
 import Tour from '../models/tourModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
 import catchAsync from '../utils/catchAsync.js';
+import AppError from '../utils/appError.js';
 
 // 2) ROUTE HANDLERS
 
@@ -36,6 +37,9 @@ const getTour = catchAsync(async (req, res, next) => {
   // mongoose provid us the easiest way to search a document by ID using function "findById()"
   const tour = await Tour.findById(req.params.id);
 
+  if (!tour) {
+    return next(new AppError('No tour found with requested id', 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -62,6 +66,10 @@ const updateTour = catchAsync(async (req, res, next) => {
     runValidators: true,
   });
 
+  if (!tour) {
+    return next(new AppError('No tour found with requested id', 404));
+  }
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -73,8 +81,11 @@ const updateTour = catchAsync(async (req, res, next) => {
 const deleteTour = catchAsync(async (req, res, next) => {
   // delete the tour of id related to user
 
-  await Tour.findByIdAndDelete(req.params.id);
+  const tour = await Tour.findByIdAndDelete(req.params.id);
 
+  if (!tour) {
+    return next(new AppError('No tour found with requested id', 404));
+  }
   res.status(204).json({
     status: 'success',
     data: 'none',
