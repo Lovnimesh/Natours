@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -25,9 +26,28 @@ const userSchema = new mongoose.Schema({
   passwordConfirm: {
     type: String,
     reuire: [true, 'Please confirm your password'],
+    validate: {
+      // custom validator only works on CREATE & SAVE!!!
+      validator: function (el) {
+        return this.password === el;
+      },
+      message: 'password are not same',
+    },
   },
 });
 
-const User = mongoose.Model('User', userSchema);
+userSchema.pre('save', async function (next) {
+  // only while there is an update in password not in other changes
+  // for that mongoose have 'isModified' method
+  if (!this.isModified('password')) return next();
+  // we will use a famous hashing algorithm, i.e. "Bcrypt"
+  this.password = await bcrypt.hash(this.password, 12);
+
+  //  delete confirm password field, since we only need it when the user set the  password to verify that  first input is same
+  this.passwordConfirm = undefined;
+
+  next();
+});
+const User = mongoose.model('User', userSchema);
 
 export default User;
