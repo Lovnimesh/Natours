@@ -41,11 +41,20 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
-
   this.passwordConfirm = undefined;
 
   next();
 });
+
+// instance method
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+  // compare the  user password and encrypted password
+};
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

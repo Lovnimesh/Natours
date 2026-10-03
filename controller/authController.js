@@ -3,6 +3,12 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import jwt from 'jsonwebtoken';
 
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
 const signUp = catchAsync(async (req, res, next) => {
   // const newUser = await User.create(req.body);
   // there is a security flow saving the user data like this because any one can assign himself.herself admin role
@@ -15,10 +21,7 @@ const signUp = catchAsync(async (req, res, next) => {
   });
 
   // signing the JWT
-  // jwt.sign(payload, secret, {options(expiresin)});
-  const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+  const token = signToken(newUser._id);
 
   res.status(201).json({
     status: 'success',
@@ -40,10 +43,17 @@ const login = catchAsync(async (req, res, next) => {
   // 2) Check if user exists && password is correct
 
   // since we have excluded the field password in schema, here we need, so we use 'select' method to allow the field
-  const user = await User.findOne({ email }).seclect('+password');
+
+  // since password field is encrypted. then we have to encrypt the user entered password too with same hashing mehtod
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError('Incorrect email or password', 401));
+    // 401 -> authentication failed
+  }
 
   // 3) If everything ok, send token to client
-  const token = ;
+  const token = signToken(user._id);
   res.status(200).json({
     status: 'success',
     token,
