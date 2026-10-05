@@ -59,8 +59,6 @@ const login = catchAsync(async (req, res, next) => {
 });
 
 const protect = catchAsync(async (req, res, next) => {
-  // 1) Getting token and check if it exists
-  // usual way to send the token is send in header like {authorization: "bearer <token>"}
   let token;
   if (
     req.headers.authorization &&
@@ -68,7 +66,7 @@ const protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
-  console.log('token', token);
+  // console.log('token', token);
 
   if (!token) {
     return next(
@@ -77,11 +75,24 @@ const protect = catchAsync(async (req, res, next) => {
   }
 
   // 2) Verification the token
+
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // 3) Check if user still exists
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    return next(new AppError('The user belonging to the token doesnt exist'));
+  }
 
   // 4)  check if user changed password after the token was issued
+
+  if (freshUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please login again', 401),
+    );
+  }
+
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = freshUser;
   next();
 });
 

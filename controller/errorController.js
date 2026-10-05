@@ -54,6 +54,12 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleJWTError = () =>
+  new AppError('Invalid token, Please login Again', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expired, Please login again', 401);
+
 export default (err, req, res, next) => {
   // console.log(err.stack);
   // err.stack reveals the error location
@@ -76,6 +82,13 @@ export default (err, req, res, next) => {
 
     //Handling validation error
     if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
+
+    // handling authanticaiton failed error
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+
+    // handling JWT expired token error
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
+
     sendErrorProd(error, res);
   }
 };
