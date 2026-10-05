@@ -1,3 +1,4 @@
+import { promisify } from 'util';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
@@ -42,9 +43,6 @@ const login = catchAsync(async (req, res, next) => {
 
   // 2) Check if user exists && password is correct
 
-  // since we have excluded the field password in schema, here we need, so we use 'select' method to allow the field
-
-  // since password field is encrypted. then we have to encrypt the user entered password too with same hashing mehtod
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
@@ -60,4 +58,31 @@ const login = catchAsync(async (req, res, next) => {
   });
 });
 
-export { signUp, login };
+const protect = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check if it exists
+  // usual way to send the token is send in header like {authorization: "bearer <token>"}
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  console.log('token', token);
+
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get acess', 401),
+    );
+  }
+
+  // 2) Verification the token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3) Check if user still exists
+
+  // 4)  check if user changed password after the token was issued
+  next();
+});
+
+export { signUp, login, protect };

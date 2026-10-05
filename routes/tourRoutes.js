@@ -10,6 +10,7 @@ import {
   getTourStats,
   getMOnthlyPlan,
 } from '../controller/tourController.js';
+import { protect } from '../controller/authController.js';
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.route('/monthly-plan/:year').get(getMOnthlyPlan);
 router.route('/tour-stats').get(getTourStats);
 
 // if id is not valid then it will return from here no need to verfiy in all the request handler
-router.route('/').get(getAllTours).post(createTour);
+router.route('/').get(protect, getAllTours).post(createTour);
 
 router.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
 
