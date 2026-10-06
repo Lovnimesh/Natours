@@ -1,8 +1,8 @@
 import { promisify } from 'util';
+import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
-import jwt from 'jsonwebtoken';
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -96,4 +96,17 @@ const protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-export { signUp, login, protect };
+const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    // roles is an array ['admin', 'lead-guide']->allowed
+
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError('You dont have permission to perform this action', 403),
+      );
+    }
+    next();
+  };
+};
+
+export { signUp, login, protect, restrictTo };

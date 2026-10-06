@@ -10,7 +10,7 @@ import {
   getTourStats,
   getMOnthlyPlan,
 } from '../controller/tourController.js';
-import { protect } from '../controller/authController.js';
+import { protect, restrictTo } from '../controller/authController.js';
 
 const router = express.Router();
 
@@ -26,6 +26,10 @@ router.route('/tour-stats').get(getTourStats);
 // if id is not valid then it will return from here no need to verfiy in all the request handler
 router.route('/').get(protect, getAllTours).post(createTour);
 
-router.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+router
+  .route('/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
 
 export default router;
