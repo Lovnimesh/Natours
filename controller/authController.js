@@ -12,6 +12,18 @@ const signToken = (id) => {
   });
 };
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 const signUp = catchAsync(async (req, res, next) => {
   // const newUser = await User.create(req.body);
   // there is a security flow saving the user data like this because any one can assign himself.herself admin role
@@ -25,15 +37,7 @@ const signUp = catchAsync(async (req, res, next) => {
   });
 
   // signing the JWT
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendToken(newUser, 201, res);
 });
 
 const login = catchAsync(async (req, res, next) => {
@@ -54,11 +58,7 @@ const login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
 
 const protect = catchAsync(async (req, res, next) => {
@@ -183,11 +183,29 @@ const resetPassword = catchAsync(async (req, res, next) => {
   // 3) Update ChnagePasswordAt property for the user
 
   // 4) Log the user in, send JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
+});
+
+export const updatePassword = catchAsync(async (req, res, next) => {
+  // allowing logged in user to update the password without forgeting it
+
+  // 1) Get user from collection
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2) Check if Posted current password is correct
+
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Please enter correct userName or password', 401));
+  }
+
+  // 3) If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  await user.save();
+
+  // 4) Log user in, sendJWT
+  createSendToken(user, 200, res);
 });
 
 export { signUp, login, protect, restrictTo, forgotPassword, resetPassword };

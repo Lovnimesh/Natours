@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    require: [true, 'Please tell us your name'],
+    required: [true, 'Please tell us your name'],
   },
   email: {
     type: String,
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   passwordConfirm: {
     type: String,
-    reuire: [true, 'Please confirm your password'],
+    required: [true, 'Please confirm your password'],
     validate: {
       // custom validator only works on CREATE & SAVE!!!
       validator: function (el) {
@@ -62,6 +62,8 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+
+  next();
 });
 
 userSchema.methods.correctPassword = async function (

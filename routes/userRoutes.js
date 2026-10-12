@@ -5,12 +5,15 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  updateMe,
 } from '../controller/userController.js';
 import {
   forgotPassword,
   login,
+  protect,
   resetPassword,
   signUp,
+  updatePassword,
 } from '../controller/authController.js';
 
 const router = express.Router();
@@ -19,6 +22,9 @@ router.post('/signup', signUp);
 router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
+router.patch('/updateMyPassword', protect, updatePassword);
+
+router.patch('/updateMe', protect, updateMe);
 
 router.route('/').get(getAllusers).post(createUser);
 
