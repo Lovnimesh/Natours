@@ -26,7 +26,7 @@ const getAllusers = catchAsync(async (_req, res) => {
 
 // Updating the user information
 
-export const updateMe = catchAsync(async (req, res, next) => {
+const updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error it user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(
@@ -38,15 +38,14 @@ export const updateMe = catchAsync(async (req, res, next) => {
   }
 
   // 2) filtered out the fields that are not allowed to be in object
+  // allowed fields = (name, email);
   const filteredBody = filterObj(req.body, 'name', 'email');
 
-  // 3) Update the passoword
-  // we are not using model.save(), since it triggered the password/passwordCOnfirm validators, thus we will use findByIdAndUpdate
+  // 3) Update the user
 
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,
-    // here validators run for only passed field (name, email, ...) not for password/passwordConfirm
   });
 
   res.status(200).json({
@@ -54,6 +53,15 @@ export const updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+const deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
 
@@ -82,4 +90,12 @@ const deleteUser = (_req, res) => {
     message: 'This route is not yet defined',
   });
 };
-export { getAllusers, getUser, createUser, updateUser, deleteUser };
+export {
+  getAllusers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateMe,
+  deleteMe,
+};

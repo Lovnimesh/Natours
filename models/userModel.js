@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -55,8 +60,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// instance methods
-
 userSchema.pre('save', function (next) {
   // if password field is modified or new document is created then return
   if (!this.isModified('password') || this.isNew) return next();
@@ -65,6 +68,14 @@ userSchema.pre('save', function (next) {
 
   next();
 });
+
+userSchema.pre(/^find/, function (next) {
+  // this points to current query
+  this.find({ active: { $ne: false } });
+  next();
+});
+
+// instance methods
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
