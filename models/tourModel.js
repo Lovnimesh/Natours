@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
+import User from './userModel.js';
 // import validator from 'validator';
 
 const tourSchema = mongoose.Schema(
@@ -77,6 +78,32 @@ const tourSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      cordinates: [Number],
+      address: String,
+      description: String,
+    },
+
+    locations: [
+      // Defining the schema for an embedded subdocument
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        cordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: Array,
   },
   {
     // SCHEMA OPTIONS
@@ -97,6 +124,15 @@ tourSchema.virtual('durationWeeks').get(function () {
 // DOCUMENT MIDDLEWARE: (save)
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
+
+  next();
+});
+
+// Saving the user data as embedded document
+tourSchema.pre('save', async function (next) {
+  const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+
+  this.guides = await Promise.all(guidesPromises);
 
   next();
 });

@@ -26,13 +26,13 @@ mongoose
   });
 
 const toursData = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'),
+  fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'),
 );
 
 // IMPORT DATA INTO DB
 const importData = async () => {
   try {
-    // await Tour.create(toursData);
+    await Tour.create(toursData);
     console.log(toursData);
     console.log('Data successfully Loaded');
     process.exit();

@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import { xss } from 'express-xss-sanitizer';
+import hpp from 'hpp';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -53,14 +54,29 @@ app.use(mongoSanitize());
 // -> Against XSS attack( cross-side-scripting)
 app.use(xss());
 
-// 6) Serving Static files
+// 6) Prevent Parameter pollution,
+
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'ratingQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
+  }),
+);
+
+// 7) Serving Static files
 app.use(express.static(`${__dirname}/public`));
 
 // to define our own middleware we use 'app.use()' function
 
 // middleware function is going to execute at every kind of request
 
-// 7) Test MiddleWare
+// 8) Test MiddleWare
 // manuplating the req;
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
