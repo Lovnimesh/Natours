@@ -35,6 +35,7 @@ const getAllTours = catchAsync(async (req, res, next) => {
 
 const getTour = catchAsync(async (req, res, next) => {
   // mongoose provid us the easiest way to search a document by ID using function "findById()"
+  // we can pass the options we wants dont want to queried in select field by passing the objec instead of a string in populate
   const tour = await Tour.findById(req.params.id);
 
   if (!tour) {

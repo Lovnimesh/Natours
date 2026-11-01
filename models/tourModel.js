@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import slugify from 'slugify';
-import User from './userModel.js';
 // import validator from 'validator';
 
 const tourSchema = mongoose.Schema(
@@ -103,7 +102,12 @@ const tourSchema = mongoose.Schema(
         day: Number,
       },
     ],
-    guides: Array,
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     // SCHEMA OPTIONS
@@ -128,12 +132,13 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-// Saving the user data as embedded document
-tourSchema.pre('save', async function (next) {
-  const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+// defining the query middleware for populate the data before querying
 
-  this.guides = await Promise.all(guidesPromises);
-
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 

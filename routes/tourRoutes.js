@@ -16,6 +16,8 @@ const router = express.Router();
 
 // router.param('id', checkID);
 
+// review endpoints
+
 // route alias for top tours
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 
