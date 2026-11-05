@@ -123,6 +123,15 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// VIRTUAL POPULATE
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+
+  // name of the field in child Document(Review where the refrence current document is stored
+  foreignField: 'tour',
+  localField: '_id',
+});
+
 // we can't use virtual fields in query
 
 // DOCUMENT MIDDLEWARE: (save)

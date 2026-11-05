@@ -11,12 +11,18 @@ import {
   getMOnthlyPlan,
 } from '../controller/tourController.js';
 import { protect, restrictTo } from '../controller/authController.js';
+import reviewRouter from './reviewRoutes.js';
 
 const router = express.Router();
 
 // router.param('id', checkID);
-
 // review endpoints
+
+// POST /tour/234fad4/reviews
+// GET /tour/234fad4/reviews
+
+// we are mounting the router here
+router.use('/:tourId/reviews', reviewRouter);
 
 // route alias for top tours
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);

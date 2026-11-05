@@ -13,6 +13,7 @@ import {
   login,
   protect,
   resetPassword,
+  restrictTo,
   signUp,
   updatePassword,
 } from '../controller/authController.js';

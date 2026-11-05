@@ -2,6 +2,7 @@ import Tour from '../models/tourModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
+import { deleteOne } from './handlerFactory.js';
 
 // 2) ROUTE HANDLERS
 
@@ -36,7 +37,9 @@ const getAllTours = catchAsync(async (req, res, next) => {
 const getTour = catchAsync(async (req, res, next) => {
   // mongoose provid us the easiest way to search a document by ID using function "findById()"
   // we can pass the options we wants dont want to queried in select field by passing the objec instead of a string in populate
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate('reviews');
+
+  // populate(fieldname we want to poulate)
 
   if (!tour) {
     return next(new AppError('No tour found with requested id', 404));
@@ -79,19 +82,21 @@ const updateTour = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteTour = catchAsync(async (req, res, next) => {
-  // delete the tour of id related to user
+const deleteTour = deleteOne(Tour);
 
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+// const deleteTour = catchAsync(async (req, res, next) => {
+//   // delete the tour of id related to user
 
-  if (!tour) {
-    return next(new AppError('No tour found with requested id', 404));
-  }
-  res.status(204).json({
-    status: 'success',
-    data: 'none',
-  });
-});
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
+
+//   if (!tour) {
+//     return next(new AppError('No tour found with requested id', 404));
+//   }
+//   res.status(204).json({
+//     status: 'success',
+//     data: 'none',
+//   });
+// });
 
 const getTourStats = catchAsync(async (req, res, next) => {
   const stats = await Tour.aggregate([
