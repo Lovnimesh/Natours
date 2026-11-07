@@ -1,8 +1,12 @@
 import Tour from '../models/tourModel.js';
-import APIFeatures from '../utils/apiFeatures.js';
 import catchAsync from '../utils/catchAsync.js';
-import AppError from '../utils/appError.js';
-import { deleteOne } from './handlerFactory.js';
+import {
+  createOne,
+  deleteOne,
+  getAll,
+  getOne,
+  updateOne,
+} from './handlerFactory.js';
 
 // 2) ROUTE HANDLERS
 
@@ -14,73 +18,13 @@ const aliasTopTours = (req, _res, next) => {
   next();
 };
 
-const getAllTours = catchAsync(async (req, res, next) => {
-  // EXECUTE QUERY
-  // Here we are able to chain it, because we are returning the object in each method
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
+const getAllTours = getAll(Tour);
 
-  const tours = await features.query;
+const getTour = getOne(Tour, { path: 'reviews' });
 
-  res.status(200).json({
-    status: 'successfull',
-    results: tours.length,
-    data: {
-      tours: tours,
-    },
-  });
-});
+const createTour = createOne(Tour);
 
-const getTour = catchAsync(async (req, res, next) => {
-  // mongoose provid us the easiest way to search a document by ID using function "findById()"
-  // we can pass the options we wants dont want to queried in select field by passing the objec instead of a string in populate
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-
-  // populate(fieldname we want to poulate)
-
-  if (!tour) {
-    return next(new AppError('No tour found with requested id', 404));
-  }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
-const createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-});
-
-const updateTour = catchAsync(async (req, res, next) => {
-  // update the property of tour of id related to user
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!tour) {
-    return next(new AppError('No tour found with requested id', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
+const updateTour = updateOne(Tour);
 
 const deleteTour = deleteOne(Tour);
 

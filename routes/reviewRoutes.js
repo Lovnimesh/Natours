@@ -3,6 +3,9 @@ import {
   createReview,
   deleteReview,
   getAllReviews,
+  getReview,
+  setTourAndUserIds,
+  updateReview,
 } from '../controller/reviewController.js';
 import { protect, restrictTo } from '../controller/authController.js';
 
@@ -17,8 +20,8 @@ const router = express.Router({ mergeParams: true });
 router
   .route('/')
   .get(protect, getAllReviews)
-  .post(protect, restrictTo('user', 'guide'), createReview);
+  .post(protect, restrictTo('user', 'guide'), setTourAndUserIds, createReview);
 
-router.route('/:id').delete(deleteReview);
+router.route('/:id').delete(deleteReview).patch(updateReview).get(getReview);
 
 export default router;
