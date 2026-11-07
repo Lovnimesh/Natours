@@ -7,6 +7,7 @@ import {
   deleteUser,
   updateMe,
   deleteMe,
+  getMe,
 } from '../controller/userController.js';
 import {
   forgotPassword,
@@ -24,10 +25,17 @@ router.post('/signup', signUp);
 router.post('/login', login);
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
-router.patch('/updateMyPassword', protect, updatePassword);
 
-router.patch('/updateMe', protect, updateMe);
-router.delete('/deleteMe', protect, deleteMe);
+// Protect all routes after this middleware
+router.use(protect);
+
+router.patch('/updateMyPassword', updatePassword);
+router.get('/me', getMe, getUser);
+router.patch('/updateMe', updateMe);
+router.delete('/deleteMe', deleteMe);
+
+// from here routes are restricted to user
+router.use(restrictTo('admin'));
 
 router.route('/').get(getAllusers).post(createUser);
 

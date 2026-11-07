@@ -27,17 +27,22 @@ router.use('/:tourId/reviews', reviewRouter);
 // route alias for top tours
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 
-router.route('/monthly-plan/:year').get(getMOnthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(protect, restrictTo('admin', 'lead-guide', 'guide'), getMOnthlyPlan);
 
 router.route('/tour-stats').get(getTourStats);
 
 // if id is not valid then it will return from here no need to verfiy in all the request handler
-router.route('/').get(protect, getAllTours).post(createTour);
+router
+  .route('/')
+  .get(getAllTours)
+  .post(protect, restrictTo('admin', 'lead-guide'), createTour);
 
 router
   .route('/:id')
   .get(getTour)
-  .patch(updateTour)
+  .patch(protect, restrictTo('admin', 'lead-guide'), updateTour)
   .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour);
 
 export default router;

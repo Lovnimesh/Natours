@@ -17,11 +17,17 @@ const router = express.Router({ mergeParams: true });
 // GET /tour/234fad4/reviews
 // POST /reviews
 
+router.use(protect);
+
 router
   .route('/')
-  .get(protect, getAllReviews)
-  .post(protect, restrictTo('user', 'guide'), setTourAndUserIds, createReview);
+  .get(getAllReviews)
+  .post(restrictTo('user'), setTourAndUserIds, createReview);
 
-router.route('/:id').delete(deleteReview).patch(updateReview).get(getReview);
+router
+  .route('/:id')
+  .delete(restrictTo('user', 'admin'), deleteReview)
+  .patch(restrictTo('user', 'admin'), updateReview)
+  .get(getReview);
 
 export default router;
