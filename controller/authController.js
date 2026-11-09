@@ -78,8 +78,6 @@ const login = catchAsync(async (req, res, next) => {
 });
 
 const protect = catchAsync(async (req, res, next) => {
-  console.log(req.headers.authorization);
-
   let token;
   if (
     req.headers.authorization &&

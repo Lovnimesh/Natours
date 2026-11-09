@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import Tour from './tourModel.js';
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -49,6 +50,51 @@ reviewSchema.pre(/^find/, function (next) {
     select: 'name photo',
   });
   next();
+});
+
+reviewSchema.statics.calculateAverageRatings = async function (tourId) {
+  const stats = await this.aggregate([
+    // select all the reviews that belongs to the passed tour
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        // grouping the data based on tour
+        _id: `$tour`,
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  await Tour.findByIdAndUpdate(tourId, {
+    ratingsQuantity: stats[0].nRating,
+    ratingsAverage: stats[0].avgRating,
+  });
+
+  console.log(stats);
+};
+
+reviewSchema.post('save', function () {
+  // this points to current review
+
+  this.constructor.calculateAverageRatings(this.tour);
+});
+
+// findByIdAndUpdate -> findOneAndUpdate
+// findByIdAndDelete -> findOneAndDelete
+
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // this points to current query so we await/execute the query to get the document
+  // we can only execute the query in pre type in post type query will already be executed
+  this.r = await this.findOne();
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function () {
+  // await this.findOne(); Doesn't work here, query has already executed
+  this.r.constructor.calculateAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
