@@ -36,6 +36,13 @@ const reviewSchema = new mongoose.Schema(
   },
 );
 
+reviewSchema.index(
+  { tour: 1, user: 1 },
+  {
+    unique: true,
+  },
+);
+
 // pouplating the refrenced document
 reviewSchema.pre(/^find/, function (next) {
   // this.populate({
@@ -68,10 +75,17 @@ reviewSchema.statics.calculateAverageRatings = async function (tourId) {
     },
   ]);
 
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating,
-  });
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 4.5,
+      ratingsAverage: 0,
+    });
+  }
 
   console.log(stats);
 };
@@ -86,8 +100,6 @@ reviewSchema.post('save', function () {
 // findByIdAndDelete -> findOneAndDelete
 
 reviewSchema.pre(/^findOneAnd/, async function (next) {
-  // this points to current query so we await/execute the query to get the document
-  // we can only execute the query in pre type in post type query will already be executed
   this.r = await this.findOne();
   next();
 });

@@ -33,6 +33,7 @@ const tourSchema = mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.random(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,
@@ -83,7 +84,7 @@ const tourSchema = mongoose.Schema(
         default: 'Point',
         enum: ['Point'],
       },
-      cordinates: [Number],
+      coordinates: [Number],
       address: String,
       description: String,
     },
@@ -121,6 +122,7 @@ const tourSchema = mongoose.Schema(
 // tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 // VIRTUAL PROPERTIES
 
@@ -185,12 +187,12 @@ tourSchema.post(/^find/, function (doc, next) {
 // execute the function before and after the aggrgation happens
 // we have still the secret tours in aggregation pipeline we have to exclude the secret tour
 
-tourSchema.pre('aggregate', function (next) {
-  // this points the current aggregation object
-  // we will use this.pipeline() since it has the stages
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   // this points the current aggregation object
+//   // we will use this.pipeline() since it has the stages
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 

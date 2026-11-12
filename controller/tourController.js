@@ -1,4 +1,5 @@
 import Tour from '../models/tourModel.js';
+import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import {
   createOne,
@@ -135,6 +136,81 @@ const getMOnthlyPlan = catchAsync(async (req, res, next) => {
   });
 });
 
+// /tours-within/:distance/center/:latlng/unit/:unit
+// /tours-distance/233/center/34.111745, -118.113491/unit/mi
+const getToursWithIn = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  // converting the distance to radians unit, because mongoose expect radius data in radians = dist/radius
+  const radius =
+    unit === 'mi' ? Number(distance) / 3963.2 : Number(distance) / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'please provide latitude  and longitude in the format lat,lng',
+        400,
+      ),
+    );
+  }
+
+  // geoSpatial query
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+
+  // console.log(distance, lat, lng, unit);
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+const getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  if (!lat || !lng) {
+    next(
+      new AppError(
+        'please provide latitude  and longitude in the format lat,lng',
+        400,
+      ),
+    );
+  }
+
+  const multipler = unit === 'mi' ? 0.00062137 : 0.001;
+
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multipler,
+      },
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});
+
 export {
   getAllTours,
   getTour,
@@ -144,4 +220,6 @@ export {
   aliasTopTours,
   getTourStats,
   getMOnthlyPlan,
+  getToursWithIn,
+  getDistances,
 };

@@ -9,6 +9,8 @@ import {
   aliasTopTours,
   getTourStats,
   getMOnthlyPlan,
+  getToursWithIn,
+  getDistances,
 } from '../controller/tourController.js';
 import { protect, restrictTo } from '../controller/authController.js';
 import reviewRouter from './reviewRoutes.js';
@@ -32,6 +34,12 @@ router
   .get(protect, restrictTo('admin', 'lead-guide', 'guide'), getMOnthlyPlan);
 
 router.route('/tour-stats').get(getTourStats);
+
+router
+  .route('/tours-within/:distance/center/:latlng/unit/:unit')
+  .get(getToursWithIn);
+
+router.route('/distances/:latlng/unit/:unit').get(getDistances);
 
 // if id is not valid then it will return from here no need to verfiy in all the request handler
 router
