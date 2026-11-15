@@ -1,0 +1,32 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name='viewport', content="width=device-width, initial-scale=1.0")
+        //- interopolation using #{js vars}
+        title Natours | #{title}
+        link(rel='stylesheet', href='css/style.css')
+        link(rel='shortcut icon', type='image/png', href='img/favicon.png')
+        link(rel='stylesheet',  href="https://fonts.googleapis.com/css?family=Lato:300,300i,700")
+
+    body
+        //- 3 ways of writing the content
+        //- 1) h1= tour buffered code
+        //-  unbuffered code, It's not going to add anything to the ouput
+        //- we can use simple html syntax as well
+        //- 3) Interopolation #{js-var}
+
+        // HEADER
+        //- we can include the component like following by definfing it differently
+        include _header
+
+        // CONTENT
+        //- we define the block when we are extedning the template to the child template
+        block content
+            h1 This is a placeholder headiing
+
+        // FOOTER
+        include _footer
+
+
+        

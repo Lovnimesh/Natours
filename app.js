@@ -7,7 +7,7 @@ import { xss } from 'express-xss-sanitizer';
 import hpp from 'hpp';
 
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import path, { dirname } from 'path';
 import tourRouter from './routes/tourRoutes.js';
 import userRouter from './routes/userRoutes.js';
 import AppError from './utils/appError.js';
@@ -20,7 +20,14 @@ const __dirname = dirname(__filename);
 const app = express();
 app.set('json spaces', 2);
 
+// defining the view engine
+app.set('view engine', 'pug');
+// defining the where the templates are located
+app.set('views', path.join(__dirname, 'views'));
+
 //  GLOBAL MIDDLEWARES
+// 1) Serving Static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 1) Set Security HTTP Headers
 app.use(helmet());
@@ -70,9 +77,6 @@ app.use(
   }),
 );
 
-// 7) Serving Static files
-app.use(express.static(`${__dirname}/public`));
-
 // to define our own middleware we use 'app.use()' function
 
 // middleware function is going to execute at every kind of request
@@ -87,8 +91,25 @@ app.use((req, res, next) => {
 
 // ROUTES
 
-// to connect the router from the application we are using middlewar and mounting the router
-// in middleware this url path is the path where router is going to be mounted
+app.get('/', (req, res) => {
+  // method render will render the template with template name passed in thee method as arg (we dont have to sepcify the extension)
+  res.status(200).render('base', {
+    // passing the data to template
+    tour: 'The Forest Hiker',
+    user: 'Nimesh',
+  });
+});
+
+app.get('/overview', (req, res) => {
+  res.status(200).render('overview', {
+    title: 'All Tours',
+  });
+});
+app.get('/tour', (req, res) => {
+  res.status(200).render('tour', {
+    title: 'THe Forest Hiker Tour',
+  });
+});
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
