@@ -13,6 +13,7 @@ import userRouter from './routes/userRoutes.js';
 import AppError from './utils/appError.js';
 import globalErrorHandler from './controller/errorController.js';
 import reviewRouter from './routes/reviewRoutes.js';
+import viewRouter from './routes/viewRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -90,27 +91,7 @@ app.use((req, res, next) => {
 });
 
 // ROUTES
-
-app.get('/', (req, res) => {
-  // method render will render the template with template name passed in thee method as arg (we dont have to sepcify the extension)
-  res.status(200).render('base', {
-    // passing the data to template
-    tour: 'The Forest Hiker',
-    user: 'Nimesh',
-  });
-});
-
-app.get('/overview', (req, res) => {
-  res.status(200).render('overview', {
-    title: 'All Tours',
-  });
-});
-app.get('/tour', (req, res) => {
-  res.status(200).render('tour', {
-    title: 'THe Forest Hiker Tour',
-  });
-});
-
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
