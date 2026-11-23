@@ -2,7 +2,7 @@
 
 // console.log(locations);
 
-export const displayMap = (location) => {
+export const displayMap = (locations) => {
   const map = new mapboxgl.Map({
     accessToken: process.env.MAPBOXGL_ACESS_TOKEN,
     container: 'map', // container ID
