@@ -512,8 +512,8 @@ body {
   );
   -webkit-clip-path: polygon(
     0 var(--section-rotate),
-    216% 0,
-    172% calc(100% - var(--section-rotate)),
+    100% 0,
+    100% calc(100% - var(--section-rotate)),
     0 100%
   );
   margin-top: calc(0px - var(--section-rotate));

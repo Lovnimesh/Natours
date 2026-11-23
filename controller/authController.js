@@ -84,6 +84,8 @@ const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   // console.log('token', token);
 
@@ -112,6 +114,34 @@ const protect = catchAsync(async (req, res, next) => {
 
   // GRANT ACCESS TO PROTECTED ROUTE
   req.user = freshUser;
+  next();
+});
+
+// Defining a middleware to check that there is a login or not
+// Only for rendered pages, no errors
+const isLoggedIn = catchAsync(async (req, res, next) => {
+  if (req.cookies.jwt) {
+    // 1) Verification the token
+    const token = req.cookies.jwt;
+
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    // 2) Check the user still exists
+    const freshUser = await User.findById(decoded.id);
+    if (!freshUser) {
+      return next();
+    }
+
+    // 3)  check if user changed password after the token was issued
+    if (freshUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+
+    // THERE IS A LOGGED IN USER
+    // each pug have the access of req.locals
+    res.locals.user = freshUser;
+    return next();
+  }
   next();
 });
 
@@ -224,4 +254,12 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-export { signUp, login, protect, restrictTo, forgotPassword, resetPassword };
+export {
+  signUp,
+  login,
+  protect,
+  restrictTo,
+  forgotPassword,
+  resetPassword,
+  isLoggedIn,
+};

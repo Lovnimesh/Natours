@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import { xss } from 'express-xss-sanitizer';
 import hpp from 'hpp';
+import cookieParser from 'cookie-parser';
 
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
@@ -31,7 +32,35 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 1) Set Security HTTP Headers
-app.use(helmet());
+// app.use(helmet());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      scriptSrc: [
+        "'self'",
+        'https://api.mapbox.com',
+        'blob:',
+        'https://cdnjs.cloudflare.com',
+      ],
+      styleSrc: [
+        "'self'",
+        'https://api.mapbox.com',
+        'https://fonts.googleapis.com',
+        "'unsafe-inline'",
+      ],
+      workerSrc: ["'self'", 'blob:'],
+      childSrc: ['blob:'],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: [
+        "'self'",
+        'https://api.mapbox.com',
+        'https://events.mapbox.com',
+        'https://*.tiles.mapbox.com',
+      ],
+    },
+  }),
+);
 
 // 2) Development  Login
 if (process.env.NODE_ENV === 'development') {
@@ -53,6 +82,7 @@ app.use('/api', limiter);
 
 // 4) Body Parser, Ready the data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 // it is a middleware that modify the incoming data into json method, after that req.body will be available
 
 // 5) Data Sanitization
@@ -86,9 +116,12 @@ app.use(
 // manuplating the req;
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-
+  console.log(req.cookies);
   next();
 });
+
+// 9
+app.use(express.urlencoded({ extended: true }));
 
 // ROUTES
 app.use('/', viewRouter);

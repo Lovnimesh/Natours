@@ -1,13 +1,14 @@
 doctype html
 html(lang="en")
     head
-        meta(charset="UTF-8")
-        meta(name='viewport', content="width=device-width, initial-scale=1.0")
-        //- interopolation using #{js vars}
-        title Natours | #{title}
-        link(rel='stylesheet', href='/css/style.css')
-        link(rel='shortcut icon', type='/image/png', href='img/favicon.png')
-        link(rel='stylesheet',  href="https://fonts.googleapis.com/css?family=Lato:300,300i,700")
+        block head
+            meta(charset="UTF-8")
+            meta(name='viewport', content="width=device-width, initial-scale=1.0")
+            //- interopolation using #{js vars}
+            title Natours | #{title}
+            link(rel='stylesheet', href='/css/style.css')
+            link(rel='shortcut icon', type='/image/png', href='/img/favicon.png')
+            link(rel='stylesheet',  href="https://fonts.googleapis.com/css?family=Lato:300,300i,700")
 
     body
         //- 3 ways of writing the content
@@ -22,11 +23,15 @@ html(lang="en")
 
         // CONTENT
         //- we define the block when we are extedning the template to the child template
-        block content
+        block content  
             h1 This is a placeholder headiing
 
         // FOOTER
         include _footer
 
+        //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.1/axios.min.js')
+        //- script(src='/js/mapbox.js')
+        script(src='/js/bundle.js')
+        
 
         
